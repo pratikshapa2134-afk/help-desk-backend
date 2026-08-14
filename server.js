@@ -3,36 +3,37 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
-// Import Routes
-const authRoutes = require('./routes/authRoutes'); // Assuming you have this
-const ticketRoutes = require('./routes/ticketRoutes');
-const conversationRoutes = require('./routes/conversationRoutes');
-const dashboardRoutes = require('./routes/dashboardRoutes');
-
 const app = express();
 
 // Middleware
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/tickets', ticketRoutes);
-app.use('/api/conversation', conversationRoutes);
-app.use('/api/dashboard', dashboardRoutes);
+// Database Connection & Port Setup
+const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI;
 
-// Root Route
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('MongoDB Connected Successfully'))
+  .catch((err) => console.error('MongoDB Connection Error:', err));
+
+// Test Route
 app.get('/', (req, res) => {
-  res.send('Help Desk Backend is Running...');
+  res.status(200).json({ success: true, message: "Help Desk Backend is running successfully!" });
 });
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Connected Successfully'))
-  .catch(err => console.log('MongoDB Connection Error: ', err));
+// Import Routes
+const authRoutes = require('./routes/authRoutes');
+const ticketRoutes = require('./routes/ticketRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
+const conversationRoutes = require('./routes/conversationRoutes');
 
-// Server Port
-const PORT = process.env.PORT || 5000;
+app.use('/api/auth', authRoutes);
+app.use('/api/tickets', ticketRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/conversations', conversationRoutes);
+
+// Start Server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
