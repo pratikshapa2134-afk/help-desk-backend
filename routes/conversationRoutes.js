@@ -1,13 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const auth = require('../middleware/auth');
+const { addReply, getConversation } = require('../controllers/conversationController');
 
-// Sadhya dummy routes
-router.post('/', (req, res) => {
-  res.json({ msg: 'Conversation create working' })
-})
-
-router.get('/:id', (req, res) => {
-  res.json({ msg: 'Get conversation working' })
-})
+router.post('/reply', auth, addReply);
+router.get('/:ticketId', auth, getConversation);
 
 module.exports = router;
