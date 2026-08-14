@@ -5,58 +5,72 @@ const Ticket = require('../models/Ticket');
 // Create Ticket (Customer)
 router.post('/create', async (req, res) => {
   try {
-    const { subject, description, category, priority, customer } = req.body;
-    const newTicket = new Ticket({
-      subject,
-      description,
-      category,
-      priority: priority || 'Medium',
-      customer
-    });
+    const newTicket = new Ticket(req.body);
     await newTicket.save();
-    res.status(201).json({ success: true, message: "Ticket created successfully!", ticket: newTicket });
+    res.status(201).json({ message: 'Ticket created successfully', newTicket });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// Get All Tickets (For Admin / Agent / Customer filter)
+// Get All Tickets (Admin / Agent / Customer specific)
 router.get('/', async (req, res) => {
   try {
-    const tickets = await Ticket.find().populate('customer', 'name email').populate('assignedAgent', 'name email');
-    res.status(200).json(tickets);
+    const tickets = await Ticket.find().populate('customer assignedAgent', 'name email role');
+    res.json(tickets);
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// Assign Ticket (Admin)
-router.put('/assign/:id', async (req, res) => {
+// Assign Ticket & Change Priority/Status (Admin)
+router.put('/:id/update', async (req, res) => {
   try {
-    const { agentId } = req.body;
+    const { assignedAgent, priority, status } = req.body;
     const updatedTicket = await Ticket.findByIdAndUpdate(
-      req.params.id, 
-      { assignedAgent: agentId, status: 'Assigned' }, 
+      req.params.id,
+      { assignedAgent, priority, status },
       { new: true }
     );
-    res.status(200).json({ success: true, ticket: updatedTicket });
+    res.json({ message: 'Ticket updated successfully', updatedTicket });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
 // Reply / Conversation Inside Ticket
-router.post('/reply/:id', async (req, res) => {
+router.post('/:id/reply', async (req, res) => {
   try {
     const { sender, message } = req.body;
     const ticket = await Ticket.findById(req.params.id);
-    if (!ticket) return res.status(404).json({ message: "Ticket not found" });
-
-    ticket.conversations.push({ sender, message });
+    ticket.conversation.push({ sender, message });
     await ticket.save();
-    res.status(200).json({ success: true, ticket });
+    res.json({ message: 'Reply added successfully', ticket });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Dashboard Analytics Counters (Admin / Agent / Customer)
+router.get('/dashboard-stats', async (req, res) => {
+  try {
+    const totalTickets = await Ticket.countDocuments();
+    const openTickets = await Ticket.countDocuments({ status: 'Open' });
+    const inProgress = await Ticket.countDocuments({ status: 'In Progress' });
+    const resolved = await Ticket.countDocuments({ status: 'Resolved' });
+    const closed = await Ticket.countDocuments({ status: 'Closed' });
+    const critical = await Ticket.countDocuments({ priority: 'Critical' });
+
+    res.json({
+      totalTickets,
+      openTickets,
+      inProgress,
+      resolved,
+      closed,
+      critical
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

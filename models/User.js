@@ -4,12 +4,8 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { 
-    type: String, 
-    enum: ['Super Admin', 'Support Agent', 'Customer'], 
-    default: 'Customer' 
-  },
-  department: { type: String, default: 'General' }, // Support Agent साठी
+  role: { type: String, enum: ['Super Admin', 'Support Agent', 'Customer'], default: 'Customer' },
+  department: { type: String, default: 'General' },
   status: { type: String, enum: ['Active', 'Inactive'], default: 'Active' }
 }, { timestamps: true });
 
