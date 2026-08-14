@@ -1,42 +1,14 @@
 const mongoose = require('mongoose');
 
 const ticketSchema = new mongoose.Schema({
-  ticketId: { 
-    type: String, 
-    unique: true 
-  },
-  subject: { 
-    type: String, 
-    required: true 
-  },
-  description: { 
-    type: String, 
-    required: true 
-  },
-  category: { 
-    type: String, 
-    required: true 
-  },
-  priority: { 
-    type: String, 
-    enum: ['Low', 'Medium', 'High', 'Critical'], 
-    default: 'Medium' 
-  },
-  status: { 
-    type: String, 
-    enum: ['Open', 'Assigned', 'In Progress', 'Waiting for Customer', 'Resolved', 'Closed'], 
-    default: 'Open' 
-  },
-  customer: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
-  },
-  assignedAgent: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    default: null 
-  },
+  ticketId: { type: String, unique: true },
+  subject: { type: String, required: true },
+  description: { type: String, required: true },
+  category: { type: String, required: true },
+  priority: { type: String, enum: ['Low', 'Medium', 'High', 'Critical'], default: 'Medium' },
+  status: { type: String, enum: ['Open', 'Assigned', 'In Progress', 'Waiting for Customer', 'Resolved', 'Closed'], default: 'Open' },
+  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  assignedAgent: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   conversation: [
     {
       sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -44,11 +16,9 @@ const ticketSchema = new mongoose.Schema({
       timestamp: { type: Date, default: Date.now }
     }
   ]
-}, { 
-  timestamps: true // हे स्वयंचलितपणे Created Date आणि Updated Date मॅनेज करते 
-});
+}, { timestamps: true });
 
-// Auto generate unique Ticket ID (e.g., TICK-1001)
+// Auto generate ticket ID
 ticketSchema.pre('save', async function(next) {
   if (!this.ticketId) {
     const count = await mongoose.model('Ticket').countDocuments();
